@@ -6,7 +6,7 @@ var BABYLON;
         }
         GoblinPlugin.prototype.initialize = function (iterations) {
             if (typeof iterations === "undefined") { iterations = 10; }
-            this._world = new Goblin.World(new Goblin.BasicBroadphase(), new Goblin.NearPhase(), new Goblin.IterativeSolver());
+            this._world = new Goblin.World(new Goblin.BasicBroadphase(), new Goblin.NarrowPhase(), new Goblin.IterativeSolver());
             this._world.solver.max_iterations = iterations;
         };
 
@@ -78,18 +78,15 @@ var BABYLON;
                     var max = bbox.maximumWorld;
                     var box = max.subtract(min).scale(0.5);
 
-                    body = new Goblin.RigidBody(new Goblin.PlaneShape(1, box.y / 2, box.z / 2), options.mass);
+                    body = new Goblin.RigidBody(new Goblin.PlaneShape(1, box.x, box.z), options.mass);
                     break;
                 case BABYLON.PhysicsEngine.MeshImpostor:
-                    var rawVerts = mesh.getVerticesData(BABYLON.VertexBuffer.PositionKind);
-                    debugger;
+                    var rawVerts = mesh.getVerticesData(BABYLON.VertexBuffer.PositionKind), verts = [];
+                    for (var i = 0; i < rawVerts.length; i += 3) {
+                        verts.push(new Goblin.Vector3(rawVerts[i], rawVerts[i + 1], rawVerts[i + 2]));
+                    }
 
-                    body = new Goblin.RigidBody(new Goblin.ConvexShape(rawVerts.map(function (vertex) {
-                        var transformed = BABYLON.Vector3.Zero();
-                        BABYLON.Vector3.TransformNormalFromFloatsToRef(rawVerts[i], rawVerts[i + 1], rawVerts[i + 2], mesh.getWorldMatrix(), transformed);
-
-                        return new Goblin.Vector3(transformed.x, transformed.y, transformed.z);
-                    })), options.mass);
+                    body = new Goblin.RigidBody(new Goblin.MeshShape(verts, mesh.getIndices()), options.mass);
                     break;
             }
 
