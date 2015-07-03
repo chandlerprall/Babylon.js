@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+        <title>Babylon.js sample code</title>
+        <!-- Babylon.js -->
+        <script src="http://www.babylonjs.com/hand.minified-1.2.js"></script>
+        <script src="cannon.js"></script>
+        <script src="oimo.js"></script>
+        <script src="goblin.min.js"></script>
+        <!--<script src="http://www.babylonjs.com/babylon.js"></script>-->
+	    <script src="babylon.1.14-RC.js"></script>
+	    <script src="Babylon/Physics/Plugins/babylon.goblinPlugin.js"></script>
+        <style>
+            html, body {
+                overflow: hidden;
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+
+            #renderCanvas {
+                width: 100%;
+                height: 100%;
+                touch-action: none;
+            }
+        </style>
+    </head>
+<body>
+    <canvas id="renderCanvas"></canvas>
+    <script>
+        var canvas = document.getElementById("renderCanvas");
+        var engine = new BABYLON.Engine(canvas, true);
+
+        var makeCrate = function() {
+	        //Simple crate
+	        var box = new BABYLON.Mesh.CreateBox("crate", 2, scene);
+	        //var box = new BABYLON.Mesh.CreateSphere("crate", 16, 2, scene);
+	        box.material = new BABYLON.StandardMaterial("Mat", scene);
+	        box.material.diffuseTexture = new BABYLON.Texture("textures/crate.png", scene);
+	        box.material.diffuseTexture.hasAlpha = true;
+	        box.position = new BABYLON.Vector3( 0, 15, 0 );
+	        box.setPhysicsState(BABYLON.PhysicsEngine.MeshImpostor, { mass: 1, restitution: 0.1, friction: 0.5 });
+	        box.applyImpulse(new BABYLON.Vector3(0, -20, 0), new BABYLON.Vector3(0,0,0));
+        };
+
+        var createScene = function () {
+            var scene = new BABYLON.Scene(engine);
+	        scene.enablePhysics(null, new BABYLON.GoblinPlugin());
+	        //scene.enablePhysics(null, new BABYLON.CannonJSPlugin());
+	        //scene.enablePhysics(null, new BABYLON.OimoJSPlugin());
+
+            // Lights
+            var light0 = new BABYLON.DirectionalLight("Omni", new BABYLON.Vector3(-2, -5, 2), scene);
+            var light1 = new BABYLON.PointLight("Omni", new BABYLON.Vector3(2, -5, -2), scene);
+        
+            // Need a free camera for collisions
+            var camera = new BABYLON.FreeCamera("FreeCamera", new BABYLON.Vector3(0, 5, -20), scene);
+            camera.attachControl(canvas);
+        
+            //Ground
+            var ground = BABYLON.Mesh.CreatePlane("ground", 20.0, scene);
+            ground.material = new BABYLON.StandardMaterial("groundMat", scene);
+            ground.material.diffuseColor = new BABYLON.Color3(1, 1, 1);
+            ground.material.backFaceCulling = false;
+            //ground.position = new BABYLON.Vector3(5, -10, -15);
+	        //ground.position = new BABYLON.Vector3(0, -10, 0);
+            ground.rotation = new BABYLON.Vector3(Math.PI / 2, 0, 0);
+	        ground.setPhysicsState(BABYLON.PhysicsEngine.PlaneImpostor, { mass: 0, restitution: 0.1, friction: 0.5 });
+
+	        //scene._physicsEngine._currentPlugin._world.solver.relaxation = 0.3;
+        
+            return scene;
+        };
+        
+        var scene = createScene();
+        setInterval( makeCrate, 250 );
+        //makeCrate();
+
+        engine.runRenderLoop(function () {
+            scene.render();
+        });
+
+        // Resize
+        window.addEventListener("resize", function () {
+            engine.resize();
+        });
+    </script>
+</body>
+</html>
